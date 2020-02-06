@@ -1,0 +1,9 @@
+/* TODO */
+
+.form-label {
+    margin-bottom: 0;
+}
+
+.form-check-input:disabled~.form-label {
+    color: #6c757d;
+}

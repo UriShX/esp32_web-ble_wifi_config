@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+        <meta name="description" content="Configure shortcut keyboard with a Web Bluetooth app.">
+
+        <link href="/styles/styles.css" rel="stylesheet">
+        <!-- http://getbootstrap.com/docs/4.1/ -->
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <!-- <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.2.js"></script> -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
+        <!-- https://github.com/macek/jquery-serialize-object/ -->
+        <script type="text/javascript" src="/scripts/jquery.serialize-object.min.js"></script>
+        <!-- jquery form validation https://jqueryvalidation.org/documentation/ -->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
+        <!-- http://sammyjs.org/ -->
+        <script type="text/javascript" src="/scripts/sammy-latest.min.js" type="text/javascript"></script>
+        <!-- load json files for correlating key name to scancode -->
+        <script type="text/javascript" src="/scripts/json_loader.js"></script>
+        <!-- spoof geolocation to avoid accessing mobile loaction services when connecting to BLE -->
+        <script type="text/javascript" src="/scripts/geo_spoof.js"></script>
+        <!-- ble helper script for non-standart communication https://github.com/loginov-rocks/bluetooth-terminal -->
+        <script type="text/javascript" src="/scripts/BluetoothTerminal.js"></script>
+
+        <title>ESP32 Configure WiFi over BLE tool</title>
+
+    </head>
+
+    <body>
+
+        <!-- http://getbootstrap.com/docs/4.1/components/navbar/ -->
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+            <a class="navbar-brand mb-1 h1">Navigate:</a>
+            <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" type="button" data-target="#navbarNav" data-toggle="collapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#Edit">Edit</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#Review">Review</a>
+                    </li>
+                </ul>
+            </div>
+            <button type="button" id="ble_connect" class="btn btn-info"><span id="connect_text">Connect </span><i class="material-icons" id="connection_status">bluetooth</i></button>
+        </nav>
+
+        <!-- http://getbootstrap.com/docs/4.1/layout/overview/#containers -->
+        <main class="container-fluid p-5">
+                    
+            <!-- http://getbootstrap.com/docs/4.1/content/typography/ -->
+            <h1 class="mb-3">ESP32 shortcut keyboard configuration tool using web-ble</h1>
+
+            <div id="edit_form" data-bind="with: edit">
+
+                <!-- http://getbootstrap.com/docs/4.1/components/forms/ -->
+                <form autocomplete="off" action="/#Review" method="POST" class="needs-validation" novalidate data-bind="if: pinAssign().length > 0, submit: passData">
+                    <h3>Set ESP32 BLE keyboard button(s) value:</h3>
+                    <div  data-bind="foreach: pinAssign">
+                        <div class="form-row">
+                            <div class="col-md-3 mb-3">
+                                <label for="gpio_pin">ESP32 dev board pin</label>
+                                <div class="form-group">
+                                    <select class="form-control" data-bind="attr: { name: 'selection_' + $index() + '[pin]' }, foreach: options, value: selected" required>
+                                        <option data-bind="attr: { disabled: !enabled(), value: pin }, text: name">
+                                    </select>
+                                    <div class="invalid-feedback">Select GPIO pin!</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="nc_no">Default switch behavior</label>
+                                <div id="nc_no">
+                                    <input type="radio" data-bind="attr: { name: 'selection_' + $index() + '[state]' }, checked: normal" value="NO"> Normally open (NO)<br>
+                                    <input type="radio" data-bind="attr: { name: 'selection_' + $index() + '[state]' }, checked: normal" value="NC"> Normally closed (NC)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col-md-2 mb-3">
+                                <label for="key">Keycode to assign:</label>
+                                <input data-bind="attr: { name: 'selection_' + $index() + '[key]' }, textInput: key" data-toggle="tooltip" data-placement="bottom" onkeydown="uniKeyCode(event)"
+                                    title="Press any key or <a href='https://css-tricks.com/snippets/javascript/javascript-keycodes/#article-header-id-1' target='_blank'>copy from <b>css-tricks</b</a>" placeholder="Char (copy from new tab)" class="form-control" required>
+                                <div class="invalid-feedback">
+                                    Please press any key while in field.
+                                </div>
+                                <input class="hideText form-control" data-bind="attr: { name: 'selection_' + $index() + '[code]' }, textInput: code" disabled>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="mod_keys">Modifier keys:</label>
+                                <div class="form-check" id="mod_keys">
+                                    <input type="checkbox" class="mod_keys form-check-input" data-bind="attr: { name: 'selection_' + $index() + '[mod][]' }, checked: modifiers" value="CTRL">
+                                    <label class="form-label"> Ctrl</label><br>
+                                    <input type="checkbox" class="mod_keys form-check-input" data-bind="attr: { name: 'selection_' + $index() + '[mod][]' }, checked: modifiers" value="ALT">
+                                    <label class="form-label"> Alt</label><br>
+                                    <input type="checkbox" class="mod_keys form-check-input" data-bind="attr: { name: 'selection_' + $index() + '[mod][]' }, checked: modifiers" value="SHIFT">
+                                    <label class="form-label"> Shift</label><br>
+                                    <input type="checkbox" class="mod_keys form-check-input" data-bind="attr: { name: 'selection_' + $index() + '[mod][]' }, checked: modifiers" value="GUI_L">
+                                    <label class="form-label"> Left system key ("Windows" key)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4 mb-3" data-bind="if: ( $index() === ( pinAssign().length - 1 ) )">
+                                <button class="btn" data-bind="click: addPinDef">Configure another pin</button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn" data-bind="click: removePinDef, hidden: pinAssign().length == 1">Remove pin</button>
+                            </div>
+                        </div>
+                        <!-- src: https://stackoverflow.com/questions/9185821/knockout-js-foreach-binding-test-if-last-element -->
+                        <div data-bind="ifnot: ( $index() ===  (pinAssign().length - 1 ) )">
+                            <hr>
+                        </div>
+                    </div>
+                    <br>
+                    <!-- http://getbootstrap.com/docs/4.1/components/buttons/ -->
+                    <button class="btn btn-primary" type="submit">Review</button>
+                </form>
+            </div>
+
+            <!-- Review grid -->
+            <div data-bind="with: review">
+                <table class="table table-sm table-bordered">
+                    <thead><tr><th>Pin</th><th>Normal state</th><th>Key</th><th>Modifiers</th></tr></thead>
+                    <tbody data-bind="foreach: pinAssign">
+                        <tr>
+                            <td data-bind="text: selected"></td>
+                            <td data-bind="text: normal"></td>
+                            <td data-bind="text: key"></td>
+                            <td data-bind="text: modifiers"></td>
+                        </tr>     
+                    </tbody>
+                </table>
+                <button class="btn btn-secondary" type="button" data-bind="click: goToEdit">Edit</button>
+                <button class="btn btn-primary" type="button" id="sendToDevice">Configure device</button>
+            </div>
+
+            <!-- knockout js view model + model -->
+            <script type="text/javascript" src="scripts/knockout-viewmodel.js"></script>
+            <!-- ble service -->
+            <!-- <script type="text/javascript" src="scripts/esp32_fader.js"></script> -->
+            <!-- ble app -->
+            <script type="text/javascript" src="scripts/app.js"></script>
+            <!-- error checking + json parsing -->
+            <script type="text/javascript" src="scripts/extensions.js"></script>
+        </main>
+
+    </body>
+
+</html>
