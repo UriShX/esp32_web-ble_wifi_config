@@ -5,19 +5,38 @@ function uniKeyCode(event) {
   document.activeElement.value = key;
 }
 
+let jsonRecieved = undefined;
 let jsonStringToSend = undefined;
 
 // Obtain configured instance.
 let terminal = new BluetoothTerminal();
 var bleConnected = false;
 
-terminal.setServiceUuid("8d8a45e7-7bc5-4926-b336-130aace8c36f");
-terminal.setCharacteristicUuid("23ab9d2c-ec09-4062-b267-6c6670b81cec");
+terminal.setServiceUuid('0000aaaa-ead2-11e7-80c1-9a214cf093ae');
+terminal.setCharacteristicUuid('00005555-ead2-11e7-80c1-9a214cf093ae');
 // 3rd uuid for later use: 71db542a-88a3-4b73-b861-db48e180d2b1
 
 // Override `receive` method to handle incoming data as you want.
+// Recieve int8Array from ESP32 utility, then XOR with device name.
+// Finally decode as ASCII text, and parse as JSON
 terminal.receive = function(data) {
-  alert(data);
+  // alert(data);
+
+  let decoder = new TextDecoder('windows-1252');
+  let APName = terminal._device.name;
+
+  terminal._characteristic.readValue().then(value => {
+    // console.log(value);
+    var keyIndex = 0;
+    for (var i = 0; i < value.byteLength; i++) {
+      value.setInt8(i, value.getInt8(i) ^ APName.charCodeAt(keyIndex));
+      keyIndex++;
+      if (keyIndex >= APName.length) keyIndex = 0;
+    }
+    jsonRecieved = JSON.parse(decoder.decode(value));
+    console.log(jsonRecieved);
+  });
+  // console.log(data);
 };
 
 terminal.setOnConnected(function() {
@@ -38,9 +57,8 @@ $('#ble_connect').on('click', function() {
   if (!bleConnected) {
     // Request the device for connection and get its name after successful connection.
     terminal.connect().then(() => {
-      alert(terminal.getDeviceName() + ' is connected!');
-      // Send something to the connected device.
-      // terminal.send('Simon says: Hello, world!');
+      // alert(terminal.getDeviceName() + ' is connected!');
+      terminal.receive();
     });
   } else {
     // Disconnect from the connected device.

@@ -161,6 +161,7 @@ class BluetoothTerminal {
    */
   receive(data) {
     // Handle incoming data.
+    return(data)
   }
 
   /**
@@ -226,6 +227,8 @@ class BluetoothTerminal {
 
   /**
    * Connect to device.
+   * 
+   * Modified - no need for notifications for configuration utility
    *
    * @param {object} device - Device.
    * @returns {Promise} Promise.
@@ -234,7 +237,7 @@ class BluetoothTerminal {
   _connectToDevice(device) {
     return (device ? Promise.resolve(device) : this._requestBluetoothDevice()).
         then((device) => this._connectDeviceAndCacheCharacteristic(device)).
-        then((characteristic) => this._startNotifications(characteristic)).
+        // then((characteristic) => this._startNotifications(characteristic)).
         catch((error) => {
           this._log(error);
           return Promise.reject(error);
@@ -276,9 +279,16 @@ class BluetoothTerminal {
   _requestBluetoothDevice() {
     this._log('Requesting bluetooth device...');
 
-    return navigator.bluetooth.requestDevice({
-      filters: [{services: [this._serviceUuid]}],
-    }).
+    let options = {
+      filters: [{
+        namePrefix: 'ESP32'
+      }],
+      optionalServices: [this._serviceUuid]
+    };
+
+    return navigator.bluetooth.requestDevice(
+    options
+    ).
         then((device) => {
           this._log('"' + device.name + '" bluetooth device selected');
 

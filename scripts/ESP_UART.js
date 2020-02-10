@@ -6,9 +6,8 @@ class ESP_UART {
   request() {
     let options = {
       "filters": [{
-        "name": "ESP32 UART Service"
       }],
-      "optionalServices": ["48696828-8aba-4445-b1d2-9fe5c3e47382"]
+      "optionalServices": ["0000aaaa-ead2-11e7-80c1-9a214cf093ae"]
     };
     return navigator.bluetooth.requestDevice(options)
       .then(device => {
