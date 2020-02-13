@@ -1,5 +1,7 @@
 /**
  * Bluetooth Terminal class.
+ * 
+ * Source: https://github.com/loginov-rocks/bluetooth-terminal
  */
 class BluetoothTerminal {
   /**

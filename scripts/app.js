@@ -17,14 +17,14 @@ terminal.receive = function(data) {
   terminal._characteristic.readValue().then(value => {
     let decoder = new TextDecoder('windows-1252');
 
-    console.log(value);
-    console.log(decoder.decode(value));
+    // console.log(value);
+    // console.log(decoder.decode(value));
 
     jsonRecieved = jsonEncodeDecode(value);
     jsonRecieved = decoder.decode(jsonRecieved);
-    console.log(jsonRecieved);
+    // console.log(jsonRecieved); // debug
     jsonRecieved = JSON.parse(jsonRecieved);
-    console.log(jsonRecieved);
+    // console.log(jsonRecieved);  // debug
     return jsonRecieved;
   }).then(jsonRecieved => {
     // Update fields
@@ -74,7 +74,7 @@ $('#ble_connect').on('click', function() {
 });
 
 $(document).on('click', '#eraseSSIDs', function() {
-  console.log('detected click');
+  console.log('erasing stored credentials from device');
 
   jsonStringToSend = jsonAssemble({erase:""});
   
@@ -86,7 +86,7 @@ $(document).on('click', '#eraseSSIDs', function() {
 });
 
 $(document).on('click', '#resetSSIDs', function() {
-  console.log('detected click');
+  console.log('resetting device');
 
   jsonStringToSend = jsonAssemble({reset:""});
   
@@ -114,15 +114,15 @@ function jsonEncodeDecode(data) {
 }
 
 function jsonAssemble(jsonTemplate) {
-  console.log(jsonTemplate);
+  // console.log(jsonTemplate); // debug
   jsonTemplate = JSON.stringify(jsonTemplate);
-  console.log(jsonTemplate);
+  // console.log(jsonTemplate); // debug
   jsonTemplate = str2ab(jsonTemplate);
-  console.log(jsonTemplate);
+  // console.log(jsonTemplate); // debug
   jsonTemplate = jsonEncodeDecode(jsonTemplate);
   let decoder = new TextDecoder('windows-1252');
   jsonTemplate = decoder.decode(jsonTemplate);
-  console.log(jsonTemplate);
+  // console.log(jsonTemplate); // debug
   return jsonTemplate;
 }
 

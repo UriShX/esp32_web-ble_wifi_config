@@ -2,6 +2,7 @@
 function viewModel() {
     var self = this;
     
+    // For future development. I want to get SSID list seen by esp32 device, and choose 1 from dropdown
     self.wifiList = ko.observableArray([]);
     self.selectedDropdown = ko.observableArray();
     self.selectedHolder = ko.observableArray();
@@ -34,7 +35,7 @@ function viewModel() {
             form.removeClass('was-validated');
         }
         console.log("start validation");
-        console.log(form);
+        // console.log(form); // debug
 
         // using Bootstrap validation w/ jquery-validation
         if (form.valid()) {  
@@ -57,11 +58,7 @@ function viewModel() {
                 jsonTemplate.pwSec = $('#pwSec').val();
             }
 
-            console.log(jsonTemplate);
-
             jsonStringToSend = jsonAssemble(jsonTemplate);
-            
-            console.log(jsonStringToSend);
             
             terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend);
 
@@ -71,37 +68,12 @@ function viewModel() {
         } else {
             console.log("not valid");
             if (!form.hasClass('was-validated')) { form.addClass('was-validated') }
-            // self.selectedDropdown(self.selectedHolder.slice(0));
-            // self.selectedHolder([]);
-            ko.utils.arrayForEach(self.selectedHolder(), function(pin) {
-                self.selectedDropdown.push(pin);
-            });
-            ko.utils.arrayForEach(self.selectedHolder(), function() {
-                self.selectedHolder.pop();
-            });
             form = null;
         }
-        $(".hideText").prop('disabled', true);
+        // $(".hideText").prop('disabled', true);
         console.log("finished validation");
         return false;
     }
-
-    // self.goToEdit = function() { 
-    //     // self.selectedDropdown(self.selectedHolder.slice(0));
-    //     // self.selectedHolder([]);
-    //     ko.utils.arrayForEach(self.selectedHolder(), function(pin) {
-    //         self.selectedDropdown.push(pin);
-    //     });
-    //     ko.utils.arrayForEach(self.selectedHolder(), function() {
-    //         self.selectedHolder.pop();
-    //     });
-    //     $(".hideText").prop('disabled', true);
-    //     location.hash = "Edit";
-    // };
-
-    // self.goToReview = function() { 
-    //     location.hash = "Review"; 
-    // };
 
     // Client-side routes    
     Sammy(function() {
