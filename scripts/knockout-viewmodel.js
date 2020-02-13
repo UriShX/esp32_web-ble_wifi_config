@@ -82,6 +82,10 @@ function viewModel() {
             self.config(null);
         });
 
+        this.post('/#config', function() {
+            event.preventDefault();
+        });
+
         this.get('/#config', function() {
             self.descript(false);
             self.config(true);

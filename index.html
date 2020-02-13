@@ -59,7 +59,7 @@
 
             <div id="config-page" data-bind="with: config">
                 <div class="row" id="testingGroundDiv">
-                    <form id="myForm" class="needs-validation" novalidate data-bind="submit: passData">
+                    <form id="myForm" method="POST" class="needs-validation" novalidate data-bind="submit: passData">
                         <div class="form-row col mb-3">
                             <label for="ssidPrim">Primary defined SSID</label>
                             <input id="ssidPrim" name="ssidPrim" data-toggle="tooltip" data-placement="bottom"
