@@ -1,10 +1,3 @@
-// sources: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code, https://www.w3schools.com/jsref/prop_document_activeelement.asp
-function uniKeyCode(event) {
-  event.preventDefault();
-  var key = event.code;
-  document.activeElement.value = key;
-}
-
 let jsonRecieved = undefined;
 let jsonStringToSend = undefined;
 
@@ -14,27 +7,31 @@ var bleConnected = false;
 
 terminal.setServiceUuid('0000aaaa-ead2-11e7-80c1-9a214cf093ae');
 terminal.setCharacteristicUuid('00005555-ead2-11e7-80c1-9a214cf093ae');
-// 3rd uuid for later use: 71db542a-88a3-4b73-b861-db48e180d2b1
+// ('1d338124-7ddc-449e-afc7-67f8673a1160'); // SSID list characteristic. Read only.
 
 // Override `receive` method to handle incoming data as you want.
 // Recieve int8Array from ESP32 utility, then XOR with device name.
 // Finally decode as ASCII text, and parse as JSON
 terminal.receive = function(data) {
   // alert(data);
-
-  let decoder = new TextDecoder('windows-1252');
-  let APName = terminal._device.name;
-
   terminal._characteristic.readValue().then(value => {
-    // console.log(value);
-    var keyIndex = 0;
-    for (var i = 0; i < value.byteLength; i++) {
-      value.setInt8(i, value.getInt8(i) ^ APName.charCodeAt(keyIndex));
-      keyIndex++;
-      if (keyIndex >= APName.length) keyIndex = 0;
-    }
-    jsonRecieved = JSON.parse(decoder.decode(value));
+    let decoder = new TextDecoder('windows-1252');
+
+    console.log(value);
+    console.log(decoder.decode(value));
+
+    jsonRecieved = jsonEncodeDecode(value);
+    jsonRecieved = decoder.decode(jsonRecieved);
     console.log(jsonRecieved);
+    jsonRecieved = JSON.parse(jsonRecieved);
+    console.log(jsonRecieved);
+    return jsonRecieved;
+  }).then(jsonRecieved => {
+    // Update fields
+    $('#ssidPrim').val(jsonRecieved.ssidPrim);
+    $('#pwPrim').val(jsonRecieved.pwPrim);
+    $('#ssidSec').val(jsonRecieved.ssidSec);
+    $('#pwSec').val(jsonRecieved.pwSec);
   });
   // console.log(data);
 };
@@ -43,14 +40,24 @@ terminal.setOnConnected(function() {
   bleConnected = true;
   $('#connect_text').html('Disconnect ');
   $('#connection_status').html('bluetooth_connected');
-  $('#sendToDevice').prop('disabled', false);
+  $('#configButtons').children().prop('disabled', false);
 });
 
 terminal.setOnDisconnected(function() {
   bleConnected = false;
   $('#connect_text').html('Connect ');
   $('#connection_status').html('bluetooth');
-  $('#sendToDevice').prop('disabled', true);
+  $('#configButtons').children().prop('disabled', true);
+});
+
+$('body').on('click', '.passEn', function() {
+  if ($(this).find("i").hasClass('fa-eye')) {
+    $(this).find("i").removeClass('fa-eye').addClass('fa-eye-slash');
+    $(this).parent().children("input").prop({type:"text"});
+  } else {
+    $(this).find("i").removeClass('fa-eye-slash').addClass('fa-eye');
+    $(this).parent().children("input").prop({type:"password"});
+  }
 });
 
 $('#ble_connect').on('click', function() {
@@ -66,59 +73,65 @@ $('#ble_connect').on('click', function() {
   }
 });
 
-$(document).on('click', '#sendToDevice', function() {
+$(document).on('click', '#eraseSSIDs', function() {
   console.log('detected click');
-  terminal.send(jsonStringToSend);
-  // terminal.send('Simon says: Hello, world!');
+
+  jsonStringToSend = jsonAssemble({erase:""});
+  
+  terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
+
+  jsonStringToSend = undefined;
+
+  terminal.receive();
+});
+
+$(document).on('click', '#resetSSIDs', function() {
+  console.log('detected click');
+
+  jsonStringToSend = jsonAssemble({reset:""});
+  
+  terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
+
   jsonStringToSend = undefined;
 });
 
 $(document).ready(function() {
-  $('#sendToDevice').prop('disabled', true);
+  $('#configButtons').children().prop('disabled', true);
 });
 
-// Request the device for connection and get its name after successful connection.
-// terminal.connect().then(() => {
-//   alert(terminal.getDeviceName() + ' is connected!');
-// });
+function jsonEncodeDecode(data) {
+  let APName = terminal._device.name;
+  
+  // console.log(value);
+  var keyIndex = 0;
+  for (var i = 0; i < data.byteLength; i++) {
+    data.setInt8(i, data.getInt8(i) ^ APName.charCodeAt(keyIndex));
+    keyIndex++;
+    if (keyIndex >= APName.length) keyIndex = 0;
+  }
 
-// Send something to the connected device.
-// terminal.send('Simon says: Hello, world!');
+  return data;
+}
 
+function jsonAssemble(jsonTemplate) {
+  console.log(jsonTemplate);
+  jsonTemplate = JSON.stringify(jsonTemplate);
+  console.log(jsonTemplate);
+  jsonTemplate = str2ab(jsonTemplate);
+  console.log(jsonTemplate);
+  jsonTemplate = jsonEncodeDecode(jsonTemplate);
+  let decoder = new TextDecoder('windows-1252');
+  jsonTemplate = decoder.decode(jsonTemplate);
+  console.log(jsonTemplate);
+  return jsonTemplate;
+}
 
-
-
-// slider.oninput = function() {
-//   output.innerHTML = this.value;
-// }
-
-// document.getElementById("setButton").onclick = function() {setMinMax()};
-
-// function setMinMax() {
-//   var boxMin = document.getElementById("min");
-//   var boxMax = document.getElementById("max");
-//   var slideMin = slider.getAttribute("min");
-//   var slideMax = slider.getAttribute("max");
-//   if (parseInt(boxMin.value) >= parseInt(boxMax.value)) {
-//     alert("Minimum value must be set lower than maximum value!");
-//     boxMin.value = slideMin;
-//     boxMax.value = slideMax;
-//     return;
-//   }
-//   if (boxMin.value != slideMin) {
-//     if (parseInt(slider.value) < boxMin.value) {
-//       slider.value = boxMin.value;
-//       output.innerHTML = slider.value;
-//       //alert(slider.value + "\t" + boxMin);
-//     }
-//   slideMin = slider.setAttribute("min", boxMin.value);
-//   }
-//   if (boxMax != slideMax.value) {
-//     if (parseInt(slider.value) > boxMax.value) {
-//       slider.value = boxMax.value;
-//       output.innerHTML = slider.value;
-//       //alert(slider.value + "\t" + boxMax);
-//     }
-//     slideMax = slider.setAttribute("max", boxMax.value);
-//   }
-// };
+// From https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length); // 1 byte for each char
+  var bufView = new Int8Array(buf);
+  for (var i=0, strLen=str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return new DataView(buf);
+}
