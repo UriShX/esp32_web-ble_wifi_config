@@ -7,7 +7,6 @@
         <meta name="viewport" content="initial-scale=1, width=device-width">
         <meta name="description" content="Configure shortcut keyboard with a Web Bluetooth app.">
 
-        <link href="/styles/styles.css" rel="stylesheet">
         <!-- http://getbootstrap.com/docs/4.1/ -->
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
@@ -19,11 +18,13 @@
         <!-- jquery form validation https://jqueryvalidation.org/documentation/ -->
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
         <!-- http://sammyjs.org/ -->
-        <script type="text/javascript" src="/scripts/sammy-latest.min.js"></script>
+        <script type="text/javascript" src="scripts/sammy-latest.min.js"></script>
         <!-- spoof geolocation to avoid accessing mobile loaction services when connecting to BLE -->
-        <script type="text/javascript" src="/scripts/geo_spoof.js"></script>
+        <script type="text/javascript" src="scripts/geo_spoof.js"></script>
         <!-- ble helper script for non-standart communication https://github.com/loginov-rocks/bluetooth-terminal -->
-        <script type="text/javascript" src="/scripts/BluetoothTerminal.js"></script>
+        <script type="text/javascript" src="scripts/BluetoothTerminal.js"></script>
+
+        <link href="styles/styles.css" rel="stylesheet">
 
         <title>ESP32 Configure WiFi over BLE tool</title>
 
@@ -136,9 +137,9 @@
             </div>
             
             <!-- knockout js view model + model -->
-            <script type="text/javascript" src="/scripts/knockout-viewmodel.js"></script>
+            <script type="text/javascript" src="scripts/knockout-viewmodel.js"></script>
             <!-- ble app -->
-            <script type="text/javascript" src="/scripts/app.js"></script>
+            <script type="text/javascript" src="scripts/app.js"></script>
         </main>
 
     </body>
