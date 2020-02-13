@@ -77,12 +77,12 @@ function viewModel() {
 
     // Client-side routes    
     Sammy(function() {
-        this.get('#descript', function() {
+        this.get('/#descript', function() {
             self.descript(true);
             self.config(null);
         });
 
-        this.get('#config', function() {
+        this.get('/#config', function() {
             self.descript(false);
             self.config(true);
             if (bleConnected) {
@@ -91,7 +91,7 @@ function viewModel() {
         });
         
         this.get('', function() { 
-            this.app.runRoute('get', '#config') 
+            this.app.runRoute('get', '/#config') 
         });
     }).run();
 };

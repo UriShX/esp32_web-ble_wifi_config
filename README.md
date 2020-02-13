@@ -22,7 +22,8 @@ Sadly, there is no support atm for iOS devices, though I believe it can be possi
 * Expand usability. That is probably the most important of all - keep current usability, while adding features such as:
     * Getting connection status from device via notification.
     * Getting a list of SSIDs seen by device.
+    * Setting up a device password and authentication scheme, so not everyone can get to the device and read passwords stored on it.
 ### Further goals:
 * Create different configurations based on connection method:
-1. Replace Knockout with Vue? Whatever works for getting the app to compile as native iOS & Android apps.
-2. Replace Bootsrap 4 with a lighter CSS framework, so that app can be embedded in the device, and be used as captive portal for WiFi configuration (without BLE).
+    1. Replace Knockout with Vue? Whatever works for getting the app to compile as native iOS & Android apps.
+    2. Replace Bootsrap 4 with a lighter CSS framework, so that app can be embedded in the device, and be used as captive portal for WiFi configuration (without BLE).
