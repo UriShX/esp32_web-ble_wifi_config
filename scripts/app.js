@@ -40,6 +40,7 @@ function recieveCredentials() {
         if (value) {
           value = decoder.decode(value);
           value = JSON.parse(value);
+          ko.utils.arrayPushAll(wifiList, value.SSID);
           console.log(value);
           return value;
         }

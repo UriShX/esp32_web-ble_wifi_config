@@ -1,3 +1,8 @@
+function listArray(list) {
+    var self = this;
+    self.list = ko.observableArray(list);
+}
+
 // based loosely on http://learn.knockoutjs.com/#/?tutorial=collections
 function viewModel() {
     var self = this;
@@ -99,7 +104,8 @@ function viewModel() {
         });
         
         this.get('', function() { 
-            this.app.runRoute('get', '/#config') 
+            // self.wifiList.push("Kuki");
+            this.app.runRoute('get', '/#config');
         });
     }).run();
 };
