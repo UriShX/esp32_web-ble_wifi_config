@@ -60,7 +60,8 @@ function viewModel() {
 
             jsonStringToSend = jsonAssemble(jsonTemplate);
             
-            terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend);
+            espconfig.writeCredentials(jsonStringToSend);
+            // terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend);
 
             jsonStringToSend = undefined;
 
@@ -72,21 +73,24 @@ function viewModel() {
         }
         // $(".hideText").prop('disabled', true);
         console.log("finished validation");
+
+        recieveCredentials();
+
         return false;
     }
 
     // Client-side routes    
     Sammy(function() {
-        this.get('/#descript', function() {
+        this.get('#descript', function() {
             self.descript(true);
             self.config(null);
         });
 
-        this.post('/#config', function() {
+        this.post('#config', function() {
             event.preventDefault();
         });
 
-        this.get('/#config', function() {
+        this.get('#config', function() {
             self.descript(false);
             self.config(true);
             if (bleConnected) {

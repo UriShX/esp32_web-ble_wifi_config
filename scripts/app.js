@@ -2,21 +2,23 @@ let jsonRecieved = undefined;
 let jsonStringToSend = undefined;
 
 // Obtain configured instance.
-let terminal = new BluetoothTerminal();
+// let terminal = new BluetoothTerminal();
+let espconfig = new Espconfig();
 var bleConnected = false;
 
-terminal.setServiceUuid('0000aaaa-ead2-11e7-80c1-9a214cf093ae');
-terminal.setCharacteristicUuid('00005555-ead2-11e7-80c1-9a214cf093ae');
-// ('1d338124-7ddc-449e-afc7-67f8673a1160'); // SSID list characteristic. Read only.
+// terminal.setServiceUuid('0000aaaa-ead2-11e7-80c1-9a214cf093ae');
+// terminal.setCharacteristicUuid('00005555-ead2-11e7-80c1-9a214cf093ae');
+espconfig.setSsidListUuid('1d338124-7ddc-449e-afc7-67f8673a1160'); // SSID list characteristic. Read only.
+espconfig.setConnectionStatusUuid('5b3595c4-ad4f-4e1e-954e-3b290cc02eb0'); // Notification, wifi connection status UUID
 
 // Override `receive` method to handle incoming data as you want.
 // Recieve int8Array from ESP32 utility, then XOR with device name.
 // Finally decode as ASCII text, and parse as JSON
-terminal.receive = function(data) {
+function recieveCredentials() {
   // alert(data);
-  terminal._characteristic.readValue().then(value => {
-    let decoder = new TextDecoder('windows-1252');
+  let decoder = new TextDecoder('windows-1252');
 
+  espconfig.readCredentials().then(value => {
     // console.log(value);
     // console.log(decoder.decode(value));
 
@@ -32,18 +34,39 @@ terminal.receive = function(data) {
     $('#pwPrim').val(jsonRecieved.pwPrim);
     $('#ssidSec').val(jsonRecieved.ssidSec);
     $('#pwSec').val(jsonRecieved.pwSec);
+  }).then(() => {
+    if (espconfig.ssidListUuid) {
+      espconfig.readSsidlist().then(value => {
+        if (value) {
+          value = decoder.decode(value);
+          value = JSON.parse(value);
+          console.log(value);
+          return value;
+        }
+      })
+    }
   });
+  // .then(() => {
+  //   return terminal._device.getCharacteristic(listCharacteristic).catch((error) => {
+  //     console.log(error);
+  //     return Promise.reject(error);
+  //   });
+  //   }).then((listChar) => {
+  //   return listChar.readValue();
+  // }).then(value => {
+  //   console.log(value);
+  // });
   // console.log(data);
 };
 
-terminal.setOnConnected(function() {
+espconfig.setOnConnected(function() {
   bleConnected = true;
   $('#connect_text').html('Disconnect ');
   $('#connection_status').html('bluetooth_connected');
   $('#configButtons').children().prop('disabled', false);
 });
 
-terminal.setOnDisconnected(function() {
+espconfig.setOnDisconnected(function() {
   bleConnected = false;
   $('#connect_text').html('Connect ');
   $('#connection_status').html('bluetooth');
@@ -63,13 +86,20 @@ $('body').on('click', '.passEn', function() {
 $('#ble_connect').on('click', function() {
   if (!bleConnected) {
     // Request the device for connection and get its name after successful connection.
-    terminal.connect().then(() => {
+    espconfig.request()
+    .then(_ => espconfig.connect())
+    .then(_ => { 
+      /* Do something with espconfig... */
+      recieveCredentials();
+    })
+    .catch(error => { console.log(error) });
+    // terminal.connect().then(() => {
       // alert(terminal.getDeviceName() + ' is connected!');
-      terminal.receive();
-    });
+      // terminal.receive();
+    // });
   } else {
     // Disconnect from the connected device.
-    terminal.disconnect();
+    espconfig.disconnect();
   }
 });
 
@@ -78,11 +108,13 @@ $(document).on('click', '#eraseSSIDs', function() {
 
   jsonStringToSend = jsonAssemble({erase:""});
   
-  terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
+  espconfig.writeCredentials(jsonStringToSend);
+  // terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
 
   jsonStringToSend = undefined;
 
-  terminal.receive();
+  recieveCredentials();
+  // terminal.receive();
 });
 
 $(document).on('click', '#resetSSIDs', function() {
@@ -90,7 +122,8 @@ $(document).on('click', '#resetSSIDs', function() {
 
   jsonStringToSend = jsonAssemble({reset:""});
   
-  terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
+  espconfig.writeCredentials(jsonStringToSend);
+  // terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend)
 
   jsonStringToSend = undefined;
 });
@@ -100,7 +133,7 @@ $(document).ready(function() {
 });
 
 function jsonEncodeDecode(data) {
-  let APName = terminal._device.name;
+  let APName = espconfig.device.name;
   
   // console.log(value);
   var keyIndex = 0;

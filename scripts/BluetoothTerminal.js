@@ -20,6 +20,8 @@ class BluetoothTerminal {
     this._receiveBuffer = ''; // Buffer containing not separated data.
     this._maxCharacteristicValueLength = 20; // Max characteristic value length.
     this._device = null; // Device object cache.
+    this._characteristicObject = {};
+    this._characteristicObject._characteristic = null;
     this._characteristic = null; // Characteristic object cache.
 
     // Bound functions used to add and remove appropriate event handlers.
@@ -142,10 +144,10 @@ class BluetoothTerminal {
   disconnect() {
     this._disconnectFromDevice(this._device);
 
-    if (this._characteristic) {
-      this._characteristic.removeEventListener('characteristicvaluechanged',
+    if (this._characteristicObject) {
+      this._characteristicObject._characteristic.removeEventListener('characteristicvaluechanged',
           this._boundHandleCharacteristicValueChanged);
-      this._characteristic = null;
+      this._characteristicObject._characteristic = null;
     }
 
     this._device = null;
@@ -310,8 +312,8 @@ class BluetoothTerminal {
    */
   _connectDeviceAndCacheCharacteristic(device) {
     // Check remembered characteristic.
-    if (device.gatt.connected && this._characteristic) {
-      return Promise.resolve(this._characteristic);
+    if (device.gatt.connected && this._characteristicObject._characteristic) {
+      return Promise.resolve(this._characteristicObject._characteristic);
     }
 
     this._log('Connecting to GATT server...');
@@ -320,20 +322,51 @@ class BluetoothTerminal {
         then((server) => {
           this._log('GATT server connected', 'Getting service...');
 
-          return server.getPrimaryService(this._serviceUuid);
+          return server.getPrimaryServices();
         }).
-        then((service) => {
+        then((services) => {
+          // console.log(services);
           this._log('Service found', 'Getting characteristic...');
 
-          return service.getCharacteristic(this._characteristicUuid);
-        }).
-        then((characteristic) => {
-          this._log('Characteristic found');
-
-          this._characteristic = characteristic; // Remember characteristic.
-
-          return this._characteristic;
+          let queue = Promise.resolve();
+          services.forEach(service => {
+            if (service.uuid == this._serviceUuid) {
+              queue = queue.then(_ => service.getCharacteristics().then(characteristics => {
+                console.log('> Service: ' + service.uuid);
+                // console.log(characteristics);
+                characteristics.forEach(characteristic => {
+                  console.log('>> Characteristic: ' + characteristic.uuid);
+                  if (characteristic.uuid == this._characteristicUuid) {
+                    this._log('Characteristic found');
+                    this._characteristic = characteristic; // Remember characteristic.
+                    this._characteristicObject._characteristic = characteristic;
+                  } else if (characteristic.uuid == listCharacteristic) {
+                    ;
+                  } else if (characteristic.uuid == wifiConnectionStatus) {
+                    ;
+                  }
+                  // console.log('>> Characteristic: ' + characteristic.uuid + ' ' +
+                  //     getSupportedProperties(characteristic));
+                });
+                return;
+              }));
+              return;
+            }
+          });
+          return;
+        })
+        .catch(error => {
+          console.log('Argh! ' + error);
         });
+        //   return service.getCharacteristic(this._characteristicUuid);
+        // }).
+        // then((characteristic) => {
+        //   this._log('Characteristic found');
+
+        //   this._characteristic = characteristic; // Remember characteristic.
+
+        //   return this._characteristic;
+        // });
   }
 
   /**
