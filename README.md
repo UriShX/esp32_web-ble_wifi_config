@@ -4,7 +4,7 @@ As the name implies, it is a web based app used to configure wifi credentials ov
 The app interacts with the esp32 using web-ble, so is available atm (02/2020) on Chrome browsers, on OSX Yosemite and later, Windows 10, Linux with required bluez version etc., and Android > 6.0.
 
 ## Requirements
-**Update, 23/02/2020:** *I have released an extension of Bernd's sketch, which provides both WiFi connection status and a list of access points seen by the esp32 device, check it out at:* https://github.com/UriShX/esp32_wifi_ble_advanced.\
+**Update, 23/02/2020:** *I have released an extension of Bernd's sketch, which provides both WiFi connection status and a list of access points seen by the esp32 device, check it out at:* https://github.com/UriShX/esp32_wifi_ble_advanced. \
 The app relies on communication with the esp32 device based on [Bernd Giesecke's ESP32 WiFi configuration over BLE](https://desire.giesecke.tk/index.php/2018/04/06/esp32-wifi-setup-over-ble/), and intends to replace the native Android Java app Bernd used. That is so it may be useable on a broader range of machines - essentially, every modern PC from the last few years (that has a working BLE interface), and Android devices ([click here for current implementation status](https://github.com/WebBluetoothCG/web-bluetooth/blob/master/implementation-status.md)).
 Sadly, there is no support atm for iOS devices, though I believe it can be possible to achieve with nativescript.
 #### JS libraries and CSS used:
