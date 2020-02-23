@@ -1,14 +1,10 @@
-function listArray(list) {
-    var self = this;
-    self.list = ko.observableArray(list);
-}
-
 // based loosely on http://learn.knockoutjs.com/#/?tutorial=collections
 function viewModel() {
     var self = this;
     
     // For future development. I want to get SSID list seen by esp32 device, and choose 1 from dropdown
-    self.wifiList = ko.observableArray([]);
+    self.wifiList = ko.observableArray(null);
+    self.dropdownMessage = ko.observable();
     self.selectedDropdown = ko.observableArray();
     self.selectedHolder = ko.observableArray();
 
@@ -24,7 +20,7 @@ function viewModel() {
 
     // Behaviours    
     self.passData = function() {
-        var form = $("form.needs-validation");
+        var form = $('form.needs-validation');
         // jQuery.validator.setDefaults({ // Debug
         //     debug: true,
         //     success: "valid"
@@ -48,25 +44,22 @@ function viewModel() {
 
             let jsonTemplate = {};
 
-            jsonTemplate.ssidPrim = $('#ssidPrim').val();
-            jsonTemplate.pwPrim = $('#pwPrim').val();
+            jsonTemplate.ssidPrim = self.ssidPrim();
+            jsonTemplate.pwPrim = self.pwPrim();
 
             if (!self.ssidSecEnable()){
-                let temp = $('#ssidSec').val();
-                if (temp == "") jsonTemplate.ssidSec = $('#ssidPrim').val();
-                else jsonTemplate.ssidSec = temp;
-                temp = $('#pwSec').val();
-                if (temp == "") jsonTemplate.pwSec = $('#pwPrim').val();
-                else jsonTemplate.pwSec = temp;
+                if (self.ssidSec() == "") jsonTemplate.ssidSec = self.ssidPrim();
+                else jsonTemplate.ssidSec = self.ssidSec();
+                if (self.pwSec() == "") jsonTemplate.pwSec = self.pwPrim();
+                else jsonTemplate.pwSec = self.pwSec();
             } else {
-                jsonTemplate.ssidSec = $('#ssidSec').val();
-                jsonTemplate.pwSec = $('#pwSec').val();
+                jsonTemplate.ssidSec = self.ssidSec();
+                jsonTemplate.pwSec = self.pwSec();
             }
 
             jsonStringToSend = jsonAssemble(jsonTemplate);
             
             espconfig.writeCredentials(jsonStringToSend);
-            // terminal._writeToCharacteristic(terminal._characteristic, jsonStringToSend);
 
             jsonStringToSend = undefined;
 
@@ -76,7 +69,6 @@ function viewModel() {
             if (!form.hasClass('was-validated')) { form.addClass('was-validated') }
             form = null;
         }
-        // $(".hideText").prop('disabled', true);
         console.log("finished validation");
 
         recieveCredentials();
@@ -103,9 +95,8 @@ function viewModel() {
             }
         });
         
-        this.get('', function() { 
-            // self.wifiList.push("Kuki");
-            this.app.runRoute('get', '/#config');
+        this.get("", function() { 
+            this.app.runRoute('get', '#config');
         });
     }).run();
 };
