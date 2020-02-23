@@ -326,6 +326,7 @@ class BluetoothTerminal {
         }).
         then((services) => {
           // console.log(services);
+          
           this._log('Service found', 'Getting characteristic...');
 
           let queue = Promise.resolve();
