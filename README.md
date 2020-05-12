@@ -1,4 +1,7 @@
 # ESP32 WiFi config over web-ble
+
+_Update 05/20:_ A newer version of this app which is more secure can be found [here](https://github.com/UriShX/Nuxt_esp32_web-ble_wifi_config). The newer version has been written with Nuxt.JS (a Vue framework). I will concentrate further development efforts on the newer app.
+
 ## General description
 As the name implies, it is a web based app used to configure wifi credentials over Bluetooth LE.
 The app interacts with the esp32 using web-ble, so is available atm (02/2020) on Chrome browsers, on OSX Yosemite and later, Windows 10, Linux with required bluez version etc., and Android > 6.0.
@@ -19,6 +22,7 @@ Sadly, there is no support atm for iOS devices, though I believe it can be possi
 * App also searches for devices with a name that starts with "ESP32", and does not display other devices.
 
 ## TODO
+**_Update 05/20:_ A newer version of this app which is more secure can be found [here](https://github.com/UriShX/Nuxt_esp32_web-ble_wifi_config). The newer version has been written with Nuxt.JS (a Vue framework). I will concentrate my efforts on the newer app.**
 * Make app progressive.
 * Expand usability. That is probably the most important of all - keep current usability, while adding features such as:
     * ~~Getting connection status from device via notification.~~ Done. Works with my modified code found [here](https://github.com/UriShX/esp32_wifi_ble_advanced).
